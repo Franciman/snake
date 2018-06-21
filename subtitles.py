@@ -47,7 +47,11 @@ class StoredSubtitle(SubtitleBase):
         self.owner._set_dialog_for_id(self.interval.data, new_dialog)
 
     def update_interval(self, new_start, new_end):
-        self.owner._update_interval(self.interval, new_start, new_end)
+        self.interval = self.owner._update_interval(self.interval, new_start, new_end)
+
+
+    def _get_underlying_interval(self):
+        return self.interval
 
 
 
@@ -101,8 +105,9 @@ class SubtitleSet:
 
 
     def remove_subtitle(self, subtitle):
-        dialog_id = subtitle.interval.data
-        self.subs_collection.remove(subtitle.interval)
+        interval = subtitle._get_underlying_interval()
+        dialog_id = interval.data
+        self.subs_collection.remove(interval)
         del self.dialogs_dict[dialog_id]
 
     # Private functions
@@ -124,4 +129,5 @@ class SubtitleSet:
         new_interval = Interval(new_start, new_end + 1, interval.data)
         self.subs_collection.remove(interval)
         self.subs_collection.add(new_interval)
+        return new_interval
 
