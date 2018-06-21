@@ -7,3 +7,5 @@ pyvenv.cfg
 
 # pip files
 pip-selfcheck.json
+
+__pycache__
