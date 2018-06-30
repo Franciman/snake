@@ -1,5 +1,0 @@
-Cython==0.28.3
-intervaltree==2.1.0
-PySide2==5.9.0a1.dev1528453888
-sortedcontainers==2.0.4
-srt==1.6.0
