@@ -1,18 +1,45 @@
 #ifndef subtitle_list_h_INCLUDED
 #define subtitle_list_h_INCLUDED
 
-#include "subtitle.h"
+#include "item.h"
+#include <deque>
 
 class SubtitleList
 {
-    using VectorIterator = std::vector<Item>::iterator;
-    using VectorConstIterator = std::vector<Item>::const_iterator;
-    std::vector<Item> m_subtitles;
+    using Container = std::deque<Item>;
+    using ContainerIterator = Container::iterator;
+    using ContainerConstIterator = Container::const_iterator;
+    Container m_subtitles;
 public:
+    class Subtitle
+    {
+        ContainerConstIterator m_item;
+
+        Subtitle(ContainerConstIterator item):
+            m_item(item)
+        { }
+    public:
+        int start_time() const
+        {
+            return m_item->start_time();
+        }
+
+        int end_time() const
+        {
+            return m_item->end_time();
+        }
+
+        const std::string &dialog() const
+        {
+            return m_item->dialog();
+        }
+
+        friend class SubtitleList;
+    };
+
     SubtitleList() = default;
     SubtitleList(std::initializer_list<std::pair<TimeInterval, std::string>> arguments)
     {
-        m_subtitles.reserve(arguments.size());
         for(auto const &element: arguments)
         {
             create_subtitle(element.first, element.second);
@@ -31,10 +58,12 @@ public:
         return insert_item(std::move(new_element));
     }
 
-    void delete_subtitle(Subtitle s)
+    // Returns the Subtitle right after the one deleted
+    Subtitle delete_subtitle(Subtitle s)
     {
-        m_subtitles.erase(s.m_item);
+        ContainerIterator next_item = m_subtitles.erase(s.m_item);
         update_max_end_points();
+        return {next_item};
     }
 
     Subtitle operator[](size_t index) const
@@ -59,7 +88,7 @@ public:
 private:
     Subtitle insert_item(Item &&i);
 
-    int update_max_end_points_impl(VectorIterator begin, VectorIterator end);
+    int update_max_end_points_impl(ContainerIterator begin, ContainerIterator end);
 
     void update_max_end_points()
     {
@@ -67,14 +96,14 @@ private:
     }
 
     template <class Func>
-    void report_overlaps(VectorConstIterator begin, VectorConstIterator end, TimeInterval i, Func f) const;
+    void report_overlaps(ContainerConstIterator begin, ContainerConstIterator end, TimeInterval i, Func f) const;
 };
 
 
 
 template <class Func>
-void SubtitleList::report_overlaps(SubtitleList::VectorConstIterator begin,
-                                 SubtitleList::VectorConstIterator end,
+void SubtitleList::report_overlaps(SubtitleList::ContainerConstIterator begin,
+                                 SubtitleList::ContainerConstIterator end,
                                  TimeInterval i,
                                  Func f) const
 {
@@ -82,7 +111,7 @@ void SubtitleList::report_overlaps(SubtitleList::VectorConstIterator begin,
 
     size_t count = std::distance(begin, end);
 
-    VectorConstIterator half = begin + count / 2;
+    ContainerConstIterator half = begin + count / 2;
 
     if(half->max_end_time() < i.start_time()) return;
 
@@ -98,6 +127,8 @@ void SubtitleList::report_overlaps(SubtitleList::VectorConstIterator begin,
         report_overlaps(half + 1, end, i, f);
     }
 }
+
+using Subtitle = SubtitleList::Subtitle;
 
 #endif // subtitle_list_h_INCLUDED
 

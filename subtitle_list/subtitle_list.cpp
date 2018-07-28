@@ -28,8 +28,8 @@ Subtitle SubtitleList::update_timing(Subtitle s, TimeInterval t)
     return insert_item(std::move(i));
 }
 
-int SubtitleList::update_max_end_points_impl(SubtitleList::VectorIterator begin,
-                                             SubtitleList::VectorIterator end)
+int SubtitleList::update_max_end_points_impl(SubtitleList::ContainerIterator begin,
+                                             SubtitleList::ContainerIterator end)
 {
     if(begin == end)
     {
@@ -37,7 +37,7 @@ int SubtitleList::update_max_end_points_impl(SubtitleList::VectorIterator begin,
     }
 
     size_t half_count = std::distance(begin, end) / 2;
-    VectorIterator half = begin + half_count;
+    ContainerIterator half = begin + half_count;
 
     int left_max_end_point = update_max_end_points_impl(begin, half);
     int right_max_end_point = update_max_end_points_impl(half + 1, end);
