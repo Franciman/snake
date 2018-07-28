@@ -27,6 +27,9 @@ public:
     Item(const Item &) = default;
     Item(Item &&) = default;
 
+    Item &operator=(const Item &) = default;
+    Item &operator=(Item &&) = default;
+
     int start_time() const
     {
         return time_interval().start_time();
