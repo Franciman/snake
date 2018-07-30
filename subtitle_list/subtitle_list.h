@@ -34,6 +34,16 @@ public:
             return m_item->dialog();
         }
 
+        bool operator==(Subtitle other) const
+        {
+            return m_item == other.m_item;
+        }
+
+        bool operator!=(Subtitle other) const
+        {
+            return !(*this == other);
+        }
+
         friend class SubtitleList;
     };
 
@@ -66,9 +76,19 @@ public:
         return {next_item};
     }
 
+    Subtitle delete_subtitle(size_t index)
+    {
+        return delete_subtitle((*this)[index]);
+    }
+
     Subtitle operator[](size_t index) const
     {
         return {m_subtitles.begin() + index};
+    }
+
+    size_t index(Subtitle s) const
+    {
+        return std::distance(m_subtitles.begin(), s.m_item);
     }
 
     template <class Func>
