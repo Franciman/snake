@@ -27,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent):
         ui->subtitleList->selectRow(index.row());
     });
 
+    ui->waveform->set_application_state(m_state);
+
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::select_subtitle);
     connect(&m_state, &ApplicationState::selection_changed, this, &MainWindow::update_selection);
 
@@ -34,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent):
 
     connect(ui->actionOpen_subtitles, &QAction::triggered, this, &MainWindow::open_subtitles);
     connect(ui->actionRemove_selected_subtitle, &QAction::triggered, this, &MainWindow::remove_selected_subtitle);
+
+    connect(ui->actionExit, &QAction::triggered, this, &QMainWindow::close);
 }
 
 MainWindow::~MainWindow()
@@ -43,7 +47,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::open_subtitles()
 {
-    std::string filename{QFileDialog::getOpenFileName(this).toStdString()};
+    // std::string filename{QFileDialog::getOpenFileName(this).toStdString()};
+    std::string filename = "/home/francesco/Download/Homeland.s07e08.italiansubs.srt";
     std::vector<SrtSubtitle> subs{parse_srt_file(filename.c_str())};
     SubtitleList list;
     for(auto const &sub: subs)

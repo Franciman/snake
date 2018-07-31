@@ -14,7 +14,10 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,6">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="2,0,1,5">
+    <item>
+     <widget class="WaveformView" name="waveform" native="true"/>
+    </item>
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
@@ -57,6 +60,7 @@
     <addaction name="actionNew_subtitles"/>
     <addaction name="actionOpen_subtitles"/>
     <addaction name="actionRemove_selected_subtitle"/>
+    <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -81,7 +85,20 @@
     <string>Remove selected subtitle</string>
    </property>
   </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>WaveformView</class>
+   <extends>QWidget</extends>
+   <header>ui_controllers/waveform.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
