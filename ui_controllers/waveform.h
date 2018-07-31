@@ -39,6 +39,7 @@ protected:
     virtual void paintEvent(QPaintEvent *ev) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *ev) override;
 
+    void paint_wave();
     void paint_ruler();
     void paint_subtitles();
     void paint_selection();

@@ -86,9 +86,19 @@ void WaveformView::update_subtitle(Subtitle s)
 
 void WaveformView::paintEvent(QPaintEvent *ev)
 {
+    paint_wave();
     paint_ruler();
     paint_subtitles();
     paint_selection();
+}
+
+void WaveformView::paint_wave()
+{
+    QPainter painter(this);
+    QRect bounding_rect(rect());
+    bounding_rect.setHeight(bounding_rect.height() - m_ruler_height);
+
+    painter.fillRect(bounding_rect, Qt::black);
 }
 
 void WaveformView::paint_ruler()
@@ -239,10 +249,22 @@ void WaveformView::paint_selection()
     bounding_rect.setLeft(left_pixel);
     bounding_rect.setRight(right_pixel);
 
-    painter.fillRect(bounding_rect, Qt::black);
+    painter.fillRect(bounding_rect, QColor(255, 255, 255, 50));
 }
 
 void WaveformView::mouseDoubleClickEvent(QMouseEvent *ev)
 {
+    if(!m_state) return;
+
     int pos_ms = time_from_pos(ev->pos().x());
+
+    std::optional<Subtitle> sub = m_state->subtitles().first_overlapping(pos_ms);
+    if(sub)
+    {
+        m_state->set_selection(*sub);
+    }
+    else
+    {
+        m_state->unset_selection();
+    }
 }
