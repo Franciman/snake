@@ -39,6 +39,7 @@ public slots:
     void update_subtitle(Subtitle s);
     void insert_subtitle(Subtitle s);
     void erase_subtitle(size_t index);
+    void reorder_subtitles();
 };
 
 #endif // subtitle_list_view_model_h_INCLUDED

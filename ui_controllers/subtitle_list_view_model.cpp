@@ -50,3 +50,9 @@ void SubtitleListViewModel::erase_subtitle(size_t index)
     beginRemoveRows(QModelIndex(), index, index);
     endRemoveRows();
 }
+
+void SubtitleListViewModel::reorder_subtitles()
+{
+    beginResetModel();
+    endResetModel();
+}

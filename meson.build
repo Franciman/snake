@@ -11,7 +11,7 @@ moc_files = qt5.preprocess(moc_headers: moc_headers, ui_files: ui_files)
 
 
 # Snake cpp files
-snake_cpp_files = ['main.cpp', 'subtitle_list/subtitle_list.cpp', 'subtitle_formats/srt_parser.cpp', 'ui_controllers/main_window.cpp', 'ui_controllers/subtitle_list_view_model.cpp', 'application_state.cpp', 'ui_controllers/waveform.cpp']
+snake_cpp_files = ['main.cpp', 'subtitle_list/subtitle_list.cpp', 'subtitle_formats/srt_parser.cpp', 'ui_controllers/main_window.cpp', 'ui_controllers/subtitle_list_view_model.cpp', 'application_state.cpp', 'ui_controllers/waveform.cpp', 'subtitle_list/time_interval.cpp']
 
 
 dependencies = [qt5_deps]

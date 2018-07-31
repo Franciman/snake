@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent):
     connect(&m_state, &ApplicationState::inserted_subtitle, &m_model, &SubtitleListViewModel::insert_subtitle);
     connect(&m_state, &ApplicationState::removed_subtitle, &m_model, &SubtitleListViewModel::erase_subtitle);
     connect(&m_state, &ApplicationState::subtitle_changed, &m_model, &SubtitleListViewModel::update_subtitle);
+    connect(&m_state, &ApplicationState::subtitles_reordered, &m_model, &SubtitleListViewModel::reorder_subtitles);
     ui->subtitleList->setModel(&m_model);
 
     QItemSelectionModel *selectionModel = ui->subtitleList->selectionModel();

@@ -40,7 +40,12 @@ public:
         return time_interval().end_time();
     }
 
-    TimeInterval time_interval() const
+    int get_boundary(IntervalBoundary b) const
+    {
+        return time_interval().get_boundary(b);
+    }
+
+    const TimeInterval &time_interval() const
     {
         return m_timing;
     }
@@ -55,19 +60,29 @@ public:
         return m_dialog;
     }
 
-    void set_time_interval(TimeInterval t)
+    void set_time_interval(const TimeInterval &t)
     {
         m_timing = t;
     }
 
-    void set_start_time(int t)
+    void set_time_interval(TimeInterval &&t)
     {
-        m_timing.set_start_time(t);
+        m_timing = std::move(t);
     }
 
-    void set_end_time(int t)
+    bool set_start_time(int t)
     {
-        m_timing.set_end_time(t);
+        return m_timing.set_start_time(t);
+    }
+
+    bool set_end_time(int t)
+    {
+        return m_timing.set_end_time(t);
+    }
+
+    bool update_boundary(int t, IntervalBoundary b)
+    {
+        return m_timing.update_boundary(t, b);
     }
 
     void set_dialog(const std::string &s)

@@ -24,6 +24,8 @@ public:
         m_position(0),
         m_ruler_height(20),
         m_selection(),
+        m_focused_subtitle(),
+        m_focus_position(IntervalBoundary::Start),
         m_mouse_down(false)
     {
         setMouseTracking(true);
@@ -37,6 +39,7 @@ public:
         connect(m_state, &ApplicationState::inserted_subtitle, this, &WaveformView::insert_subtitle);
         connect(m_state, &ApplicationState::removed_subtitle, this, &WaveformView::remove_subtitle);
         connect(m_state, &ApplicationState::subtitle_changed, this, &WaveformView::update_subtitle);
+        connect(m_state, &ApplicationState::subtitles_reordered, this, &WaveformView::reorder_subtitles);
     }
 
 protected:
@@ -57,6 +60,7 @@ public slots:
     void insert_subtitle(Subtitle s);
     void remove_subtitle(size_t index);
     void update_subtitle(Subtitle s);
+    void reorder_subtitles();
 
 private:
     enum class UpdateCategory: unsigned char
@@ -65,6 +69,7 @@ private:
         Subtitles = 4,
         All = 255,
     };
+
     void redraw(UpdateCategory uc)
     {
         update();
@@ -89,8 +94,10 @@ private:
 
     std::optional<TimeInterval> m_selection;
 
-    std::optional<TimeInterval> m_focused_range;
+    // std::optional<TimeInterval> m_focused_range;
     std::optional<Subtitle> m_focused_subtitle;
+    IntervalBoundary m_focus_position;
+
 
     bool m_mouse_down;
 };

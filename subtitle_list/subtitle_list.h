@@ -30,6 +30,16 @@ public:
             return m_item->end_time();
         }
 
+        int get_boundary(IntervalBoundary b) const
+        {
+            return m_item->get_boundary(b);
+        }
+
+        const TimeInterval &time_interval() const
+        {
+            return m_item->time_interval();
+        }
+
         const std::string &dialog() const
         {
             return m_item->dialog();

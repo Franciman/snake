@@ -20,6 +20,33 @@ void SubtitleList::update_dialog(Subtitle s, const std::string &d)
 Subtitle SubtitleList::update_timing(Subtitle s, TimeInterval t)
 {
     size_t index = std::distance(m_subtitles.cbegin(), s.m_item);
+    // Try not reordering as much as we can
+    if(t < s.time_interval())
+    {
+        if(index != 0 && !(t < (s.m_item - 1)->time_interval()))
+        {
+            bool update_end_points = t.end_time() != s.end_time();
+            m_subtitles[index].set_time_interval(t);
+            if(update_end_points)
+            {
+                update_max_end_points();
+            }
+            return s;
+        }
+    }
+    else
+    {
+        if(index != size() - 1 && !( (s.m_item + 1)->time_interval() < t))
+        {
+            bool update_end_points = t.end_time() != s.end_time();
+            m_subtitles[index].set_time_interval(t);
+            if(update_end_points)
+            {
+                update_max_end_points();
+            }
+            return s;
+        }
+    }
     Item i{std::move(m_subtitles[index])};
     m_subtitles.erase(s.m_item);
     i.set_time_interval(t);

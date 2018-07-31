@@ -60,7 +60,7 @@ void WaveformView::change_selection()
 {
     if(m_state->selection())
     {
-        m_selection = {m_state->selection()->start_time(), m_state->selection()->end_time()};
+        m_selection = m_state->selection()->time_interval();
     }
     else
     {
@@ -80,6 +80,11 @@ void WaveformView::remove_subtitle(size_t index)
 }
 
 void WaveformView::update_subtitle(Subtitle s)
+{
+    redraw(UpdateCategory::Subtitles);
+}
+
+void WaveformView::reorder_subtitles()
 {
     redraw(UpdateCategory::Subtitles);
 }
@@ -201,25 +206,55 @@ void WaveformView::paint_subtitles()
 
         painter.setPen(color);
 
-        int sub_start_pixel = scaled_x(s.start_time());
-        int sub_end_pixel   = scaled_x(s.end_time());
+        TimeInterval interval = s.time_interval();
 
-        if(s.start_time() < m_position)
+        int sub_start_pixel = scaled_x(interval.start_time());
+        int sub_end_pixel   = scaled_x(interval.end_time());
+
+
+        if(interval.start_time() < m_position)
         {
             sub_start_pixel = 0;
         }
         else
         {
+            QPen oldPen = painter.pen();
+            QPen newPen{oldPen};
+            if(m_focused_subtitle == s && m_focus_position == IntervalBoundary::Start)
+            {
+                newPen.setStyle(Qt::SolidLine);
+            }
+            else
+            {
+                newPen.setStyle(Qt::DotLine);
+            }
+
+            painter.setPen(newPen);
             painter.drawLine(sub_start_pixel, y1, sub_start_pixel, y2);
+            painter.setPen(oldPen);
         }
 
-        if(s.end_time() > m_position + m_pagesize)
+        if(interval.end_time() > m_position + m_pagesize)
         {
             sub_end_pixel = width() - 1;
         }
         else
         {
+            QPen oldPen = painter.pen();
+            QPen newPen{oldPen};
+
+            if(m_focused_subtitle == s && m_focus_position == IntervalBoundary::End)
+            {
+                newPen.setStyle(Qt::SolidLine);
+            }
+            else
+            {
+                newPen.setStyle(Qt::DotLine);
+            }
+
+            painter.setPen(newPen);
             painter.drawLine(sub_end_pixel, y1, sub_end_pixel, y2);
+            painter.setPen(oldPen);
         }
 
         painter.drawLine(sub_start_pixel, y1, sub_end_pixel, y1);
@@ -272,6 +307,10 @@ void WaveformView::mouseDoubleClickEvent(QMouseEvent *ev)
 void WaveformView::mousePressEvent(QMouseEvent *ev)
 {
     m_mouse_down = true;
+    if(m_state && m_focused_subtitle)
+    {
+        m_state->set_selection(*m_focused_subtitle);
+    }
 }
 
 void WaveformView::mouseMoveEvent(QMouseEvent *ev)
@@ -279,7 +318,16 @@ void WaveformView::mouseMoveEvent(QMouseEvent *ev)
     if(!m_state) return;
     if(m_mouse_down)
     {
-        
+        int new_pos_ms = time_from_pos(ev->pos().x());
+        if(m_focused_subtitle)
+        {
+            // CONTINUEFROMHEREZ
+            if(m_selection->update_boundary(new_pos_ms, m_focus_position))
+            {
+                m_focus_position = flip_boundary(m_focus_position);
+            }
+            m_state->selection()->update_interval(*m_selection);
+        }
     }
     else
     {
@@ -289,34 +337,45 @@ void WaveformView::mouseMoveEvent(QMouseEvent *ev)
         // Subtitles at most 4 pixel away from the cursor
         int tolerance_ms = time_from_pos(4) - m_position;
 
-        std::vector<std::pair<Subtitle, int>> nearby_subtitles;
+        std::vector<std::pair<Subtitle, IntervalBoundary>> nearby_subtitles;
 
         m_state->subtitles().for_each_overlapping({pos_ms - tolerance_ms, pos_ms + tolerance_ms},
-                                                  [&nearby_subtitles, pos_ms](Subtitle s)
+                                                  [&nearby_subtitles, tolerance_ms, pos_ms](Subtitle s)
         {
-            // Also report which side is nearest to cursor: start -> 0, or end -> 1
-            if(std::abs(s.start_time() - pos_ms) > std::abs(s.end_time() - pos_ms))
+            if(std::abs(s.start_time() - pos_ms) < tolerance_ms)
             {
-                nearby_subtitles.push_back(std::make_pair(s, 1));
+                nearby_subtitles.push_back(std::make_pair(s, IntervalBoundary::Start));
             }
-            else
+            else if(std::abs(s.end_time() - pos_ms) < tolerance_ms)
             {
-                nearby_subtitles.push_back(std::make_pair(s, 0));
+                nearby_subtitles.push_back(std::make_pair(s, IntervalBoundary::End));
             }
         });
 
-        std::sort(nearby_subtitles.begin(), nearby_subtitles.end(),
-                  [](std::pair<Subtitle, int> s1, std::pair<Subtitle, int> s2)
+        auto nearest = std::min_element(nearby_subtitles.begin(), nearby_subtitles.end(),
+                  [](auto const &s1, auto const &s2)
         { 
-            int time1 = s1.second == 0 ? s1.first.start_time() : s1.first.end_time();
-            int time2 = s2.second == 0 ? s2.first.start_time() : s2.first.end_time();
+            int time1 = s1.first.get_boundary(s1.second);
+
+            int time2 = s2.first.get_boundary(s2.second);
 
             return time1 < time2;
         });
 
-        if(!nearby_subtitles.empty())
+        if(nearest != nearby_subtitles.end())
         {
-            m_state->set_selection(nearby_subtitles[0].first);
+            m_focused_subtitle = nearest->first;
+            m_focus_position = nearest->second;
+            // m_focused_range = {m_focused_subtitle->start_time(), m_focused_subtitle->end_time()};
+
+            setCursor(Qt::SplitHCursor);
+            redraw(UpdateCategory::Subtitles);
+        }
+        else
+        {
+            m_focused_subtitle.reset();
+            setCursor(Qt::ArrowCursor);
+            redraw(UpdateCategory::Subtitles);
         }
     }
 }
@@ -327,6 +386,9 @@ void WaveformView::mouseReleaseEvent(QMouseEvent *ev)
     {
         m_mouse_down = false;
 
-        
+        if(m_state)
+        {
+            // m_focused_subtitle.reset();
+        }
     }
 }

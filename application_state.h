@@ -23,6 +23,8 @@ public:
 
     inline void set_dialog(std::string &&d);
 
+    inline void update_interval(const TimeInterval &t);
+
     bool operator==(Subtitle s) const
     {
         return Subtitle::operator==(s);
@@ -105,6 +107,7 @@ signals:
     void inserted_subtitle(Subtitle s);
     void removed_subtitle(size_t index);
     void subtitle_changed(Subtitle s);
+    void subtitles_reordered();
 };
 
 size_t SubtitleSelection::index() const
@@ -122,6 +125,13 @@ void SubtitleSelection::set_dialog(std::string &&d)
 {
     m_owner->m_list.update_dialog(*this, std::move(d));
     emit m_owner->subtitle_changed(*this);
+}
+
+void SubtitleSelection::update_interval(const TimeInterval &t)
+{
+    Subtitle self = m_owner->m_list.update_timing(*this, t);
+    set_subtitle(self);
+    emit m_owner->subtitles_reordered();
 }
 
 #endif // application_state_h_INCLUDED
