@@ -2,6 +2,7 @@
 #define subtitle_list_h_INCLUDED
 
 #include "item.h"
+#include <optional>
 #include <deque>
 
 class SubtitleList
@@ -97,6 +98,20 @@ public:
         report_overlaps(m_subtitles.begin(), m_subtitles.end(), i, f);
     }
 
+    template <class Func>
+    void for_each_overlapping(int t, Func f) const
+    {
+        for_each_overlapping({t, t}, f);
+    }
+
+    // Returns the first subtitle overlapping the given interval
+    std::optional<Subtitle> first_overlapping(TimeInterval i) const;
+
+    std::optional<Subtitle> first_overlapping(int t) const
+    {
+        return first_overlapping({t, t});
+    }
+
     void update_dialog(Subtitle s, const std::string &d);
     Subtitle update_timing(Subtitle s, TimeInterval t);
 
@@ -146,6 +161,38 @@ void SubtitleList::report_overlaps(SubtitleList::ContainerConstIterator begin,
     {
         report_overlaps(half + 1, end, i, f);
     }
+}
+
+std::optional<SubtitleList::Subtitle> SubtitleList::first_overlapping(TimeInterval i) const
+{
+    if(m_subtitles.empty()) return {};
+
+    size_t count = std::distance(m_subtitles.begin(), m_subtitles.end());
+    ContainerConstIterator half = m_subtitles.begin() + count / 2;
+
+    ContainerConstIterator candidate = m_subtitles.end();
+
+    while(count > 0)
+    {
+        if(i.overlaps(half->time_interval()))
+        {
+            candidate = half;
+            count = std::distance(m_subtitles.begin(), half);
+            half = m_subtitles.begin() + count / 2;
+        }
+        else
+        {
+            count = std::distance(m_subtitles.begin(), half);
+            half = m_subtitles.begin() + count / 2;
+            if(!(count > 0 && half->max_end_time() >= i.start_time()))
+            {
+                count = std::distance(half + 1, m_subtitles.end());
+                half = half + 1 + count/2;
+            }
+        }
+    }
+
+    return candidate == m_subtitles.end() ? std::optional<Subtitle>{} : Subtitle{candidate};
 }
 
 using Subtitle = SubtitleList::Subtitle;

@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include <iostream>
+#include <QMouseEvent>
 
 std::string time_ms_to_short_string(int time_ms, int precision_ms, int precision_log_ms)
 {
@@ -239,4 +240,9 @@ void WaveformView::paint_selection()
     bounding_rect.setRight(right_pixel);
 
     painter.fillRect(bounding_rect, Qt::black);
+}
+
+void WaveformView::mouseDoubleClickEvent(QMouseEvent *ev)
+{
+    int pos_ms = time_from_pos(ev->pos().x());
 }

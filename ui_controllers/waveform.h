@@ -37,6 +37,7 @@ public:
 
 protected:
     virtual void paintEvent(QPaintEvent *ev) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent *ev) override;
 
     void paint_ruler();
     void paint_subtitles();
@@ -65,6 +66,12 @@ private:
     {
         double x_scale_factor = width() / (double)m_pagesize;
         return std::round((ms - m_position) * x_scale_factor);
+    }
+
+    int time_from_pos(int x) const
+    {
+        double x_scale_factor = width() / (double)m_pagesize;
+        return std::round(x / x_scale_factor) + m_position;
     }
 
     int m_pagesize;
