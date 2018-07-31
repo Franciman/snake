@@ -94,7 +94,7 @@ public:
     template <class Func>
     void for_each_overlapping(TimeInterval i, Func f) const
     {
-        find_overlaps(m_subtitles.begin(), m_subtitles.end(), f);
+        report_overlaps(m_subtitles.begin(), m_subtitles.end(), i, f);
     }
 
     void update_dialog(Subtitle s, const std::string &d);
