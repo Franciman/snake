@@ -47,3 +47,40 @@ int SubtitleList::update_max_end_points_impl(SubtitleList::ContainerIterator beg
 
     return half->max_end_time();
 }
+
+std::optional<SubtitleList::Subtitle> SubtitleList::first_overlapping(TimeInterval i) const
+{
+
+    ContainerConstIterator first = m_subtitles.begin();
+    ContainerConstIterator last  = m_subtitles.end();
+    size_t count = std::distance(first, last);
+
+    ContainerConstIterator candidate = m_subtitles.end();
+
+    while(count > 0)
+    {
+        ContainerConstIterator half = first + count / 2;
+        if(i.overlaps(half->time_interval()))
+        {
+            candidate = half;
+            last = half;
+        }
+        else
+        {
+            size_t left_count = std::distance(first, half);
+            ContainerConstIterator left = first + left_count / 2;
+            if(left_count > 0 && left->max_end_time() >= i.start_time())
+            {
+                last = half;
+            }
+            else
+            {
+                first = half + 1;
+            }
+        }
+        count = std::distance(first, last);
+    }
+
+    return candidate == m_subtitles.end() ? std::optional<Subtitle>{} : Subtitle{candidate};
+}
+

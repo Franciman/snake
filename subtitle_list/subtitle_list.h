@@ -163,38 +163,6 @@ void SubtitleList::report_overlaps(SubtitleList::ContainerConstIterator begin,
     }
 }
 
-std::optional<SubtitleList::Subtitle> SubtitleList::first_overlapping(TimeInterval i) const
-{
-    if(m_subtitles.empty()) return {};
-
-    size_t count = std::distance(m_subtitles.begin(), m_subtitles.end());
-    ContainerConstIterator half = m_subtitles.begin() + count / 2;
-
-    ContainerConstIterator candidate = m_subtitles.end();
-
-    while(count > 0)
-    {
-        if(i.overlaps(half->time_interval()))
-        {
-            candidate = half;
-            count = std::distance(m_subtitles.begin(), half);
-            half = m_subtitles.begin() + count / 2;
-        }
-        else
-        {
-            count = std::distance(m_subtitles.begin(), half);
-            half = m_subtitles.begin() + count / 2;
-            if(!(count > 0 && half->max_end_time() >= i.start_time()))
-            {
-                count = std::distance(half + 1, m_subtitles.end());
-                half = half + 1 + count/2;
-            }
-        }
-    }
-
-    return candidate == m_subtitles.end() ? std::optional<Subtitle>{} : Subtitle{candidate};
-}
-
 using Subtitle = SubtitleList::Subtitle;
 
 #endif // subtitle_list_h_INCLUDED
