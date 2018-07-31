@@ -268,3 +268,65 @@ void WaveformView::mouseDoubleClickEvent(QMouseEvent *ev)
         m_state->unset_selection();
     }
 }
+
+void WaveformView::mousePressEvent(QMouseEvent *ev)
+{
+    m_mouse_down = true;
+}
+
+void WaveformView::mouseMoveEvent(QMouseEvent *ev)
+{
+    if(!m_state) return;
+    if(m_mouse_down)
+    {
+        
+    }
+    else
+    {
+        int pos_ms = time_from_pos(ev->pos().x());
+
+        // Find nearby subtitles
+        // Subtitles at most 4 pixel away from the cursor
+        int tolerance_ms = time_from_pos(4) - m_position;
+
+        std::vector<std::pair<Subtitle, int>> nearby_subtitles;
+
+        m_state->subtitles().for_each_overlapping({pos_ms - tolerance_ms, pos_ms + tolerance_ms},
+                                                  [&nearby_subtitles, pos_ms](Subtitle s)
+        {
+            // Also report which side is nearest to cursor: start -> 0, or end -> 1
+            if(std::abs(s.start_time() - pos_ms) > std::abs(s.end_time() - pos_ms))
+            {
+                nearby_subtitles.push_back(std::make_pair(s, 1));
+            }
+            else
+            {
+                nearby_subtitles.push_back(std::make_pair(s, 0));
+            }
+        });
+
+        std::sort(nearby_subtitles.begin(), nearby_subtitles.end(),
+                  [](std::pair<Subtitle, int> s1, std::pair<Subtitle, int> s2)
+        { 
+            int time1 = s1.second == 0 ? s1.first.start_time() : s1.first.end_time();
+            int time2 = s2.second == 0 ? s2.first.start_time() : s2.first.end_time();
+
+            return time1 < time2;
+        });
+
+        if(!nearby_subtitles.empty())
+        {
+            m_state->set_selection(nearby_subtitles[0].first);
+        }
+    }
+}
+
+void WaveformView::mouseReleaseEvent(QMouseEvent *ev)
+{
+    if(m_mouse_down)
+    {
+        m_mouse_down = false;
+
+        
+    }
+}

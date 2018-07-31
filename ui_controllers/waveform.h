@@ -22,8 +22,12 @@ public:
         m_state(nullptr),
         m_pagesize(15000),
         m_position(0),
-        m_ruler_height(20)
-    { }
+        m_ruler_height(20),
+        m_selection(),
+        m_mouse_down(false)
+    {
+        setMouseTracking(true);
+    }
 
     void set_application_state(ApplicationState &state)
     {
@@ -38,6 +42,9 @@ public:
 protected:
     virtual void paintEvent(QPaintEvent *ev) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *ev) override;
+    virtual void mousePressEvent(QMouseEvent *ev) override;
+    virtual void mouseMoveEvent(QMouseEvent *ev) override;
+    virtual void mouseReleaseEvent(QMouseEvent *ev) override;
 
     void paint_wave();
     void paint_ruler();
@@ -81,6 +88,11 @@ private:
     int m_ruler_height;
 
     std::optional<TimeInterval> m_selection;
+
+    std::optional<TimeInterval> m_focused_range;
+    std::optional<Subtitle> m_focused_subtitle;
+
+    bool m_mouse_down;
 };
 
 #endif // waveform_h_INCLUDED
