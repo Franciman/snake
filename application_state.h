@@ -99,7 +99,7 @@ public:
 
     void remove_subtitle(size_t index);
 
-    void insert_subtitle(TimeInterval i, const std::string &text);
+    Subtitle insert_subtitle(TimeInterval i, const std::string &text);
 
 signals:
     void subtitles_loaded();

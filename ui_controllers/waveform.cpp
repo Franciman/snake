@@ -1,6 +1,7 @@
 #include "waveform.h"
 
 #include <QPainter>
+#include <QMenu>
 
 #include <cmath>
 #include <cstring>
@@ -306,10 +307,22 @@ void WaveformView::mouseDoubleClickEvent(QMouseEvent *ev)
 
 void WaveformView::mousePressEvent(QMouseEvent *ev)
 {
+    if(!m_state) return;
+
+    if(ev->button() != Qt::LeftButton) return;
+
     m_mouse_down = true;
-    if(m_state && m_focused_subtitle)
+    if(m_focused_subtitle)
     {
         m_state->set_selection(*m_focused_subtitle);
+    }
+    else
+    {
+        // Create selection
+        int pos_ms = time_from_pos(ev->pos().x());
+        m_selection = {pos_ms, pos_ms};
+        m_selection_origin = pos_ms;
+        redraw(UpdateCategory::Selection);
     }
 }
 
@@ -321,12 +334,25 @@ void WaveformView::mouseMoveEvent(QMouseEvent *ev)
         int new_pos_ms = time_from_pos(ev->pos().x());
         if(m_focused_subtitle)
         {
-            // CONTINUEFROMHEREZ
+            // Resize selected subtitle
             if(m_selection->update_boundary(new_pos_ms, m_focus_position))
             {
                 m_focus_position = flip_boundary(m_focus_position);
             }
             m_state->selection()->update_interval(*m_selection);
+        }
+        else
+        {
+            // Resize selection
+            if(new_pos_ms < m_selection_origin)
+            {
+                m_selection->set_start_time(new_pos_ms);
+            }
+            else
+            {
+                m_selection->set_end_time(new_pos_ms);
+            }
+            redraw(UpdateCategory::Selection);
         }
     }
     else
@@ -391,4 +417,35 @@ void WaveformView::mouseReleaseEvent(QMouseEvent *ev)
             // m_focused_subtitle.reset();
         }
     }
+}
+
+void WaveformView::contextMenuEvent(QContextMenuEvent *ev)
+{
+    if(!m_state) return;
+
+    QMenu menu(this);
+
+    if(m_state->selection())
+    {
+        menu.addAction(m_remove_subtitle_action);
+        menu.exec(ev->globalPos());
+    }
+    else if(m_selection)
+    {
+        menu.addAction(m_add_subtitle_action);
+        menu.exec(ev->globalPos());
+    }
+}
+
+void WaveformView::create_subtitle_from_selection()
+{
+    if(!m_state) return;
+    Subtitle s = m_state->insert_subtitle(*m_selection, "");
+    m_state->set_selection(s);
+}
+
+void WaveformView::remove_selected_subtitle()
+{
+    if(!m_state) return;
+    m_state->remove_subtitle(m_state->selection()->index());
 }

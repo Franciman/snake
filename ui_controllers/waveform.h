@@ -2,6 +2,7 @@
 #define waveform_h_INCLUDED
 
 #include <QWidget>
+#include <QAction>
 
 #include <application_state.h>
 #include <chrono>
@@ -24,11 +25,17 @@ public:
         m_position(0),
         m_ruler_height(20),
         m_selection(),
+        m_selection_origin(-1),
         m_focused_subtitle(),
         m_focus_position(IntervalBoundary::Start),
-        m_mouse_down(false)
+        m_mouse_down(false),
+        m_add_subtitle_action(new QAction("Add subtitle", this)),
+        m_remove_subtitle_action(new QAction("Remove subtitle", this))
     {
         setMouseTracking(true);
+
+        connect(m_add_subtitle_action, &QAction::triggered, this, &WaveformView::create_subtitle_from_selection);
+        connect(m_remove_subtitle_action, &QAction::triggered, this, &WaveformView::remove_selected_subtitle);
     }
 
     void set_application_state(ApplicationState &state)
@@ -48,6 +55,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent *ev) override;
     virtual void mouseMoveEvent(QMouseEvent *ev) override;
     virtual void mouseReleaseEvent(QMouseEvent *ev) override;
+    virtual void contextMenuEvent(QContextMenuEvent *ev) override;
 
     void paint_wave();
     void paint_ruler();
@@ -61,6 +69,10 @@ public slots:
     void remove_subtitle(size_t index);
     void update_subtitle(Subtitle s);
     void reorder_subtitles();
+
+private slots:
+    void create_subtitle_from_selection();
+    void remove_selected_subtitle();
 
 private:
     enum class UpdateCategory: unsigned char
@@ -93,6 +105,7 @@ private:
     int m_ruler_height;
 
     std::optional<TimeInterval> m_selection;
+    int m_selection_origin;
 
     // std::optional<TimeInterval> m_focused_range;
     std::optional<Subtitle> m_focused_subtitle;
@@ -100,6 +113,9 @@ private:
 
 
     bool m_mouse_down;
+
+    QAction *m_add_subtitle_action;
+    QAction *m_remove_subtitle_action;
 };
 
 #endif // waveform_h_INCLUDED

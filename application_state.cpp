@@ -30,12 +30,13 @@ void ApplicationState::remove_subtitle(size_t index)
     emit removed_subtitle(index);
 }
 
-void ApplicationState::insert_subtitle(TimeInterval i, const std::string &text)
+Subtitle ApplicationState::insert_subtitle(TimeInterval i, const std::string &text)
 {
     if(!m_selection)
     {
         Subtitle new_sub = m_list.create_subtitle(i, text);
         emit inserted_subtitle(new_sub);
+        return new_sub;
     }
     else
     {
@@ -53,5 +54,6 @@ void ApplicationState::insert_subtitle(TimeInterval i, const std::string &text)
             m_selection->set_subtitle(m_list[selection_index + 1]);
         }
         emit inserted_subtitle(new_sub);
+        return new_sub;
     }
 }
