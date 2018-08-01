@@ -48,8 +48,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::open_subtitles()
 {
-    // std::string filename{QFileDialog::getOpenFileName(this).toStdString()};
-    std::string filename = "/home/francesco/Download/Homeland.s07e08.italiansubs.srt";
+    std::string filename{QFileDialog::getOpenFileName(this).toStdString()};
     std::vector<SrtSubtitle> subs{parse_srt_file(filename.c_str())};
     SubtitleList list;
     for(auto const &sub: subs)
