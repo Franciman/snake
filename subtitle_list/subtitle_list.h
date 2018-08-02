@@ -5,27 +5,28 @@
 #include <optional>
 #include <deque>
 
-class InsertPosHint
-{
-    size_t m_index;
-    TimeInterval m_interval;
 
-    InsertPosHint(size_t index, TimeInterval interval):
-        m_index(index),
-        m_interval(interval)
-    { }
+class InsertPos
+{
+    TimeInterval m_interval;
+    size_t m_index;
 
     friend class SubtitleList;
 
-public:
-    size_t index() const
-    {
-        return m_index;
-    }
+    InsertPos(const TimeInterval &interval, size_t index):
+        m_interval(interval),
+        m_index(index)
+    { }
 
+public:
     const TimeInterval &time_interval() const
     {
         return m_interval;
+    }
+
+    size_t index() const
+    {
+        return m_index;
     }
 };
 
@@ -91,6 +92,11 @@ public:
         }
     }
 
+    InsertPos get_insert_pos(const TimeInterval &i) const;
+
+    Subtitle insert_dialog_at(InsertPos pos, const std::string &dialog);
+    Subtitle insert_dialog_at(InsertPos pos, std::string &&dialog);
+
     Subtitle create_subtitle(TimeInterval timing, const std::string &text)
     {
         Item new_element{timing, text};
@@ -102,11 +108,6 @@ public:
         Item new_element{timing, std::move(text)};
         return insert_item(std::move(new_element));
     }
-
-    InsertPosHint insert_pos(TimeInterval timing) const;
-
-    Subtitle insert_subtitle_at(InsertPosHint pos, const std::string &text);
-    Subtitle insert_subtitle_at(InsertPosHint pos, std::string &&text);
 
     // Returns the Subtitle right after the one deleted
     Subtitle delete_subtitle(Subtitle s)

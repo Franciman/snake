@@ -26,7 +26,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPlainTextEdit" name="subtitleDialogEdit">
+     <widget class="SubtitleDialogEditor" name="subtitleDialogEdit">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -97,6 +97,9 @@
    <extends>QWidget</extends>
    <header>ui_controllers/waveform.h</header>
    <container>1</container>
+   <class>SubtitleDialogEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>ui_controllers/subtitle_dialog_editor.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

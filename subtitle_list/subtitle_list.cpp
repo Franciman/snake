@@ -3,36 +3,39 @@
 #include <algorithm>
 #include <iterator>
 
+InsertPos SubtitleList::get_insert_pos(const TimeInterval &i) const
+{
+    auto insert_pos = std::upper_bound(m_subtitles.begin(), m_subtitles.end(), i,
+                                       [](const TimeInterval &i, const Item &item)
+                                       {
+                                           return i < item.time_interval();
+                                       });
+
+    size_t index = std::distance(m_subtitles.begin(), insert_pos);
+    return {i, index};
+}
+
+Subtitle SubtitleList::insert_dialog_at(InsertPos pos, const std::string &dialog)
+{
+    auto insert_pos = m_subtitles.begin() + pos.index();
+    insert_pos = m_subtitles.emplace(insert_pos, pos.time_interval(), dialog);
+    update_max_end_points();
+    return {insert_pos};
+}
+
+Subtitle SubtitleList::insert_dialog_at(InsertPos pos, std::string &&dialog)
+{
+    auto insert_pos = m_subtitles.begin() + pos.index();
+    insert_pos = m_subtitles.emplace(insert_pos, pos.time_interval(), std::move(dialog));
+    update_max_end_points();
+    return {insert_pos};
+}
+
 Subtitle SubtitleList::insert_item(Item &&i)
 {
     auto insert_pos = std::upper_bound(m_subtitles.begin(), m_subtitles.end(), i);
     insert_pos = m_subtitles.emplace(insert_pos, std::move(i));
     update_max_end_points();
-    return {insert_pos};
-}
-
-InsertPosHint SubtitleList::insert_pos(TimeInterval timing) const
-{
-    auto insert_pos = std::upper_bound(m_subtitles.begin(), m_subtitles.end(), timing,
-                                       [](TimeInterval t, const Item &item)
-                                       {
-                                           return t < item.time_interval();
-                                       });
-
-    return { (size_t)std::distance(m_subtitles.begin(), insert_pos), timing };
-}
-
-Subtitle SubtitleList::insert_subtitle_at(InsertPosHint pos, const std::string &text)
-{
-    auto insert_pos = m_subtitles.begin() + pos.index();
-    insert_pos = m_subtitles.emplace(insert_pos, pos.time_interval(), text);
-    return {insert_pos};
-}
-
-Subtitle SubtitleList::insert_subtitle_at(InsertPosHint pos, std::string &&text)
-{
-    auto insert_pos = m_subtitles.begin() + pos.index();
-    insert_pos = m_subtitles.emplace(insert_pos, pos.time_interval(), std::move(text));
     return {insert_pos};
 }
 
@@ -45,7 +48,7 @@ void SubtitleList::update_dialog(Subtitle s, const std::string &d)
 Subtitle SubtitleList::update_timing(Subtitle s, TimeInterval t)
 {
     size_t index = std::distance(m_subtitles.cbegin(), s.m_item);
-    // Try not reordering as much as we can
+    // Try to avoid reordering as much as we can
     if(t < s.time_interval())
     {
         if(index != 0 && !(t < (s.m_item - 1)->time_interval()))

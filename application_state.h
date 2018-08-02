@@ -3,8 +3,7 @@
 
 #include <subtitle_list/subtitle_list.h>
 
-#include <optional>
-#include <QObject>
+#include <QAbstractTableModel>
 #include <QItemSelectionModel>
 
 class ApplicationState;
@@ -12,9 +11,8 @@ class ApplicationState;
 class SubtitleSelectionModel: public QItemSelectionModel
 {
     Q_OBJECT
-
 public:
-    SubtitleSelectionModel(ApplicationState *model = nullptr);
+    SubtitleSelectionModel(ApplicationState *model);
 };
 
 class ApplicationState: public QAbstractTableModel
@@ -27,62 +25,42 @@ public:
         QAbstractTableModel(parent)
     { }
 
-    virtual int columnCount(const QModelIndex &) const override
+    int columnCount(const QModelIndex &) const override
     {
         return 3;
     }
 
-    virtual int rowCount(const QModelIndex &) const override
+    int rowCount(const QModelIndex &) const override
     {
         return m_list.size();
     }
 
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
-    {
-        int row = index.row();
-        int column = index.column();
-
-        if(role == Qt::DisplayRole)
-        {
-            Subtitle sub = m_list[row];
-            switch(column)
-            {
-            case 0:
-                return sub.start_time();
-            case 1:
-                return sub.end_time();
-            case 2:
-                return sub.dialog().c_str();
-            default:
-                return {};
-            }
-        }
-        return {};
-    }
-
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override
-    {
-        if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
-        {
-            switch(section)
-            {
-            case 0:
-                return "Start time";
-            case 1:
-                return "End time";
-            case 2:
-                return "Dialog";
-            default:
-                return {};
-            }
-        }
-        return {};
-    }
-
-    void insert_subtitle(const TimeInterval &i, const std::string &dialog);
-    // void insert_subtitle(const TimeInterval &i, std::string &&dialog);
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     void remove_subtitle(size_t index);
+    void remove_subtitle(const QModelIndex &index)
+    {
+        remove_subtitle(index.row());
+    }
+
+    void insert_subtitle(const TimeInterval &i, const std::string &text);
+
+    void update_subtitle_dialog(size_t index, const std::string &text);
+    void update_subtitle_dialog(size_t index, std::string &&text);
+
+    Subtitle subtitle(size_t index) const
+    {
+        return m_list[index];
+    }
+
+    Subtitle subtitle(const QModelIndex &index) const
+    {
+        return m_list[index.row()];
+    }
+
+    // Reload all subtitles
+    void load_subtitles(SubtitleList &&list);
 };
 
 #endif // application_state_h_INCLUDED
