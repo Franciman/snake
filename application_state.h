@@ -4,125 +4,61 @@
 #include <subtitle_list/subtitle_list.h>
 
 #include <optional>
-#include <QObject>
+#include <QAbstractTableModel>
+#include <QItemSelectionModel>
 
 class ApplicationState;
 
-class SubtitleSelection: public Subtitle
+class SubtitleSelectionModel: public QItemSelectionModel
 {
-    ApplicationState *m_owner;
+    Q_OBJECT
 public:
-    SubtitleSelection(ApplicationState &owner, Subtitle subtitle):
-        Subtitle(subtitle),
-        m_owner(&owner)
-    { }
-
-    inline size_t index() const;
-
-    inline void set_dialog(const std::string &d);
-
-    inline void set_dialog(std::string &&d);
-
-    bool operator==(Subtitle s) const
-    {
-        return Subtitle::operator==(s);
-    }
-
-    bool operator!=(Subtitle s) const
-    {
-        return !(*this == s);
-    }
-
-    void set_subtitle(Subtitle s)
-    {
-        Subtitle::operator=(s);
-    }
-
+    SubtitleSelectionModel(ApplicationState *model);
 };
 
-class ApplicationState: public QObject
+class ApplicationState: public QAbstractTableModel
 {
     Q_OBJECT
 
-    friend class SubtitleSelection;
-
     SubtitleList m_list;
-    std::optional<SubtitleSelection> m_selection; 
-
 public:
     ApplicationState(QObject *parent = nullptr):
-        QObject(parent)
+        QAbstractTableModel(parent)
     { }
 
-    void load_subtitles(SubtitleList &&list)
+    int columnCount(const QModelIndex &) const override
     {
-        m_list = std::move(list);
-        m_selection.reset();
-        emit subtitles_loaded();
+        return 3;
     }
 
-    const std::optional<SubtitleSelection> &selection() const
+    int rowCount(const QModelIndex &) const override
     {
-        return m_selection;
+        return m_list.size();
     }
 
-    std::optional<SubtitleSelection> &selection()
-    {
-        return m_selection;
-    }
-
-    void set_selection(Subtitle s)
-    {
-        if(s != m_selection)
-        {
-            m_selection = {*this, s};
-            emit selection_changed();
-        }
-    }
-
-    void unset_selection()
-    {
-        if(m_selection)
-        {
-            m_selection.reset();
-            emit selection_changed();
-        }
-    }
-
-    const SubtitleList &subtitles() const
-    {
-        return m_list;
-    }
-
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     void remove_subtitle(size_t index);
 
     void insert_subtitle(TimeInterval i, const std::string &text);
 
-signals:
-    void subtitles_loaded();
-    void selection_changed();
-    void inserted_subtitle(Subtitle s);
-    void removed_subtitle(size_t index);
-    void subtitle_changed(Subtitle s);
+    void update_subtitle_dialog(size_t index, const std::string &text);
+    void update_subtitle_dialog(size_t index, std::string &&text);
+
+    Subtitle subtitle(size_t index) const
+    {
+        return m_list[index];
+    }
+
+    Subtitle subtitle(const QModelIndex &index) const
+    {
+        return m_list[index.row()];
+    }
+
+    // Reload all subtitles
+    void load_subtitles(SubtitleList &&list);
 };
-
-size_t SubtitleSelection::index() const
-{
-    return m_owner->m_list.index(*this);
-}
-
-void SubtitleSelection::set_dialog(const std::string &d)
-{
-    m_owner->m_list.update_dialog(*this, d);
-    emit m_owner->subtitle_changed(*this);
-}
-
-void SubtitleSelection::set_dialog(std::string &&d)
-{
-    m_owner->m_list.update_dialog(*this, std::move(d));
-    emit m_owner->subtitle_changed(*this);
-}
 
 #endif // application_state_h_INCLUDED
 

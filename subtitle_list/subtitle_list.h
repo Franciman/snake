@@ -4,6 +4,30 @@
 #include "item.h"
 #include <deque>
 
+class InsertPos
+{
+    TimeInterval m_interval;
+    size_t m_index;
+
+    friend class SubtitleList;
+
+    InsertPos(const TimeInterval &interval, size_t index):
+        m_interval(interval),
+        m_index(index)
+    { }
+
+public:
+    const TimeInterval &time_interval() const
+    {
+        return m_interval;
+    }
+
+    size_t index() const
+    {
+        return m_index;
+    }
+};
+
 class SubtitleList
 {
     using Container = std::deque<Item>;
@@ -55,6 +79,11 @@ public:
             create_subtitle(element.first, element.second);
         }
     }
+
+    InsertPos get_insert_pos(const TimeInterval &i) const;
+
+    Subtitle insert_dialog_at(InsertPos pos, const std::string &dialog);
+    Subtitle insert_dialog_at(InsertPos pos, std::string &&dialog);
 
     Subtitle create_subtitle(TimeInterval timing, const std::string &text)
     {

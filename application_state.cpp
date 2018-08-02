@@ -1,57 +1,94 @@
 #include "application_state.h"
 
+SubtitleSelectionModel::SubtitleSelectionModel(ApplicationState *model):
+    QItemSelectionModel(model)
+{ }
+
+QVariant ApplicationState::data(const QModelIndex &index, int role) const
+{
+    int row = index.row();
+    int column = index.column();
+
+    if(role == Qt::DisplayRole)
+    {
+        Subtitle sub = m_list[row];
+        switch(column)
+        {
+            case 0:
+                return sub.start_time();
+            case 1:
+                return sub.end_time();
+            case 2:
+                return sub.dialog().c_str();
+            default:
+                return {};
+        }
+    }
+    return {};
+}
+
+QVariant ApplicationState::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if(role != Qt::DisplayRole) return {};
+
+    switch(orientation)
+    {
+    case Qt::Horizontal:
+        switch(section)
+        {
+            case 0:
+                return "Start time";
+            case 1:
+                return "End time";
+            case 2:
+                return "Dialog";
+            default:
+                return {};
+        }
+
+    case Qt::Vertical:
+        return section;
+    }
+
+    return {};
+}
+
 void ApplicationState::remove_subtitle(size_t index)
 {
-    if(!m_selection)
-    {
-        m_list.delete_subtitle(index);
-    }
-    else
-    {
-        size_t selection_index = m_list.index(*m_selection);
-
-        // The subtitle after the one that got deleted
-        Subtitle following_index = m_list.delete_subtitle(index);
-
-        // Update selection
-        if(selection_index == index)
-        {
-            m_selection->set_subtitle(following_index);
-        }
-        else if(selection_index > index)
-        {
-            m_selection->set_subtitle(m_list[selection_index - 1]);
-        }
-        else
-        {
-            m_selection->set_subtitle(m_list[selection_index]);
-        }
-    }
-    emit removed_subtitle(index);
+    beginRemoveRows(QModelIndex(), index, index);
+    m_list.delete_subtitle(index);
+    endRemoveRows();
 }
 
 void ApplicationState::insert_subtitle(TimeInterval i, const std::string &text)
 {
-    if(!m_selection)
-    {
-        Subtitle new_sub = m_list.create_subtitle(i, text);
-        emit inserted_subtitle(new_sub);
-    }
-    else
-    {
-        size_t selection_index = m_list.index(*m_selection);
-        Subtitle new_sub = m_list.create_subtitle(i, text);
-        size_t new_subtitle_index = m_list.index(new_sub);
+    InsertPos pos = m_list.get_insert_pos(i);
+    beginInsertRows(QModelIndex(), pos.index(), pos.index());
+    m_list.insert_dialog_at(pos, text);
+    endInsertRows();
+}
 
-        // Update selection
-        if(selection_index < new_subtitle_index)
-        {
-            m_selection->set_subtitle(m_list[selection_index]);
-        }
-        else
-        {
-            m_selection->set_subtitle(m_list[selection_index + 1]);
-        }
-        emit inserted_subtitle(new_sub);
+void ApplicationState::load_subtitles(SubtitleList &&list)
+{
+    beginResetModel();
+    m_list = std::move(list);
+    endResetModel();
+}
+
+void ApplicationState::update_subtitle_dialog(size_t index, const std::string &dialog)
+{
+    if(m_list[index].dialog() != dialog)
+    {
+        m_list.update_dialog(m_list[index], dialog);
+        emit dataChanged(createIndex(index, 0), createIndex(index, 2));
+    }
+}
+
+void ApplicationState::update_subtitle_dialog(size_t index, std::string &&dialog)
+{
+    if(m_list[index].dialog() != dialog)
+    {
+        m_list.update_dialog(m_list[index], std::move(dialog));
+        emit dataChanged(createIndex(index, 0), createIndex(index, 2));
     }
 }
