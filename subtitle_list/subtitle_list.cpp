@@ -11,6 +11,31 @@ Subtitle SubtitleList::insert_item(Item &&i)
     return {insert_pos};
 }
 
+InsertPosHint SubtitleList::insert_pos(TimeInterval timing) const
+{
+    auto insert_pos = std::upper_bound(m_subtitles.begin(), m_subtitles.end(), timing,
+                                       [](TimeInterval t, const Item &item)
+                                       {
+                                           return t < item.time_interval();
+                                       });
+
+    return { (size_t)std::distance(m_subtitles.begin(), insert_pos), timing };
+}
+
+Subtitle SubtitleList::insert_subtitle_at(InsertPosHint pos, const std::string &text)
+{
+    auto insert_pos = m_subtitles.begin() + pos.index();
+    insert_pos = m_subtitles.emplace(insert_pos, pos.time_interval(), text);
+    return {insert_pos};
+}
+
+Subtitle SubtitleList::insert_subtitle_at(InsertPosHint pos, std::string &&text)
+{
+    auto insert_pos = m_subtitles.begin() + pos.index();
+    insert_pos = m_subtitles.emplace(insert_pos, pos.time_interval(), std::move(text));
+    return {insert_pos};
+}
+
 void SubtitleList::update_dialog(Subtitle s, const std::string &d)
 {
     size_t index = std::distance(m_subtitles.cbegin(), s.m_item);
