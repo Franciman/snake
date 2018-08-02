@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent):
             m_model.remove_subtitle(m_selection_model.currentIndex());
         }
     });
+
+    connect(ui->actionExit, &QAction::triggered, this, &MainWindow::close);
 }
 
 MainWindow::~MainWindow()
