@@ -40,6 +40,10 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     void remove_subtitle(size_t index);
+    void remove_subtitle(const QModelIndex &index)
+    {
+        remove_subtitle(index.row());
+    }
 
     void insert_subtitle(TimeInterval i, const std::string &text);
 

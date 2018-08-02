@@ -29,7 +29,14 @@ MainWindow::MainWindow(QWidget *parent):
     connect(ui->subtitleDialogEdit, &QPlainTextEdit::textChanged, this, &MainWindow::update_subtitle_text);*/
 
     connect(ui->actionOpen_subtitles, &QAction::triggered, this, &MainWindow::open_subtitles);
-    // connect(ui->actionRemove_selected_subtitle, &QAction::triggered, this, &MainWindow::remove_selected_subtitle);
+
+    connect(ui->actionRemove_selected_subtitle, &QAction::triggered, this, [this]()
+    {
+        if(m_selection_model.currentIndex().isValid())
+        {
+            m_model.remove_subtitle(m_selection_model.currentIndex());
+        }
+    });
 }
 
 MainWindow::~MainWindow()
