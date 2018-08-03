@@ -46,9 +46,9 @@ struct DrawingContext
         return std::round(pixel * ms_per_pixel) + m_position_ms;
     }
 
-    int duration_to_pixel_interval(int time_ms, const QSize &size) const
+    int distance_to_duration(int x, const QSize &size) const
     {
-        return scaled_x(time_ms, size) - m_position_ms;
+        return pixel_to_time_ms(x, size) - m_position_ms;
     }
 
     QRect get_waveform_rect(const QSize &size) const
@@ -142,7 +142,7 @@ protected:
 
 private slots:
     void update_after_data_changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
-    void update_after_current_changed(const QModelIndex &current, const QModelIndex &previous);
+    void update_after_current_changed(int current, int previous);
 
     void create_subtitle_from_selection();
     void remove_selected_subtitle();

@@ -2,18 +2,99 @@
 
 #include <utils/time_utils.h>
 
-SubtitleSelectionModel::SubtitleSelectionModel(SubtitleManager *model):
-    QItemSelectionModel(model)
-{ }
+SubtitleSelectionModel::SubtitleSelectionModel(SubtitleManager *model, QObject *parent):
+    QObject(parent),
+    m_model(model),
+    m_selection(-1)
+{
+    if(m_model)
+    {
+        connect(m_model, &SubtitleManager::rowsInserted,
+                this, &SubtitleSelectionModel::update_after_rows_inserted);
+        connect(m_model, &SubtitleManager::rowsRemoved,
+                this, &SubtitleSelectionModel::update_after_rows_removed);
+
+    }
+}
 
 void SubtitleSelectionModel::set_current_subtitle(Subtitle s)
 {
-    SubtitleManager *manager = static_cast<SubtitleManager *>(model());
-    if(manager)
+    if(m_model)
     {
-        size_t index = manager->subtitles().index(s);
-        setCurrentIndex(manager->index(index, 2), QItemSelectionModel::Current);
+        int old_index = m_selection;
+        int new_index = m_model->subtitles().index(s);
+        if(old_index != new_index)
+        {
+            m_selection = new_index;
+            emit selection_changed(new_index, old_index);
+        }
     }
+}
+
+void SubtitleSelectionModel::set_current_subtitle(int new_index)
+{
+    if(m_model)
+    {
+        int old_index = m_selection;
+        if(old_index != new_index)
+        {
+            m_selection = new_index;
+            emit selection_changed(new_index, old_index);
+        }
+    }
+}
+
+void SubtitleSelectionModel::clear_selection()
+{
+    if(m_model)
+    {
+        if(m_selection != -1)
+        {
+            int old_index = m_selection;
+            m_selection = -1;
+            emit selection_changed(-1, old_index);
+        }
+    }
+}
+
+Subtitle SubtitleSelectionModel::selected_subtitle() const
+{
+    return m_model->subtitles()[m_selection];
+}
+
+void SubtitleSelectionModel::update_after_rows_inserted(const QModelIndex &parent, int first, int last)
+{
+    if(m_selection >= first)
+    {
+        int count = last - first + 1;
+        int old_selection = m_selection;
+        m_selection += count;
+        emit selection_changed(m_selection, old_selection);
+    }
+}
+
+void SubtitleSelectionModel::update_after_rows_removed(const QModelIndex &parent, int first, int last)
+{
+    int old_selection;
+    if(m_selection > last)
+    {
+        int count = last - first + 1;
+        old_selection = m_selection;
+        m_selection -= count;
+    }
+    else if(first <= m_selection && m_selection <= last)
+    {
+        old_selection = m_selection;
+        if(m_model->rowCount(QModelIndex()) == 0)
+        {
+            m_selection = -1;
+        }
+        else
+        {
+            m_selection = first < m_model->rowCount(QModelIndex()) ? first : m_model->rowCount(QModelIndex());
+        }
+    }
+    emit selection_changed(m_selection, old_selection);
 }
 
 QVariant SubtitleManager::data(const QModelIndex &index, int role) const

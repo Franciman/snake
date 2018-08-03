@@ -28,7 +28,7 @@ public:
 
 private slots:
     void update_after_data_changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
-    void update_after_current_changed(const QModelIndex &current, const QModelIndex &previous);
+    void update_after_current_changed(int current, int previous);
     void update_subtitle_after_text_changed();
 };
 

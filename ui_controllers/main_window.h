@@ -19,6 +19,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void test_open_subtitles();
+
 private slots:
     void open_subtitles();
 

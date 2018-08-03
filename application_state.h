@@ -4,17 +4,43 @@
 #include <subtitle_list/subtitle_list.h>
 
 #include <QAbstractTableModel>
-#include <QItemSelectionModel>
+#include <optional>
 
 class SubtitleManager;
 
-class SubtitleSelectionModel: public QItemSelectionModel
+class SubtitleSelectionModel: public QObject
 {
     Q_OBJECT
+
+    SubtitleManager *m_model;
+    int m_selection;
 public:
-    SubtitleSelectionModel(SubtitleManager *model);
+    SubtitleSelectionModel(SubtitleManager *model, QObject *parent = nullptr);
 
     void set_current_subtitle(Subtitle s);
+    void set_current_subtitle(int new_index);
+
+    void clear_selection();
+
+    bool has_selection() const
+    {
+        return m_selection != -1;
+    }
+
+    int selection() const
+    {
+        return m_selection;
+    }
+
+    Subtitle selected_subtitle() const;
+
+
+signals:
+    void selection_changed(int current, int previous);
+
+private slots:
+    void update_after_rows_inserted(const QModelIndex &parent, int first, int last);
+    void update_after_rows_removed(const QModelIndex &parent, int first, int last);
 };
 
 class SubtitleManager: public QAbstractTableModel
