@@ -44,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent):
     });
 
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::close);
+
+    open_subtitles();
 }
 
 MainWindow::~MainWindow()

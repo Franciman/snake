@@ -24,7 +24,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    ApplicationState m_model;
+    SubtitleManager m_model;
     SubtitleSelectionModel m_selection_model;
 };
 

@@ -46,7 +46,7 @@ public:
         remove_subtitle(index.row());
     }
 
-    void insert_subtitle(const TimeInterval &i, const std::string &text);
+    Subtitle insert_subtitle(const TimeInterval &i, const std::string &text);
 
     void update_subtitle_dialog(size_t index, const std::string &text);
     void update_subtitle_dialog(size_t index, std::string &&text);

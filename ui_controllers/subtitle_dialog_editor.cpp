@@ -1,6 +1,6 @@
 #include "subtitle_dialog_editor.h"
 
-void SubtitleDialogEditor::setModel(ApplicationState *model)
+void SubtitleDialogEditor::setModel(SubtitleManager *model)
 {
     if(m_model)
     {
@@ -10,7 +10,7 @@ void SubtitleDialogEditor::setModel(ApplicationState *model)
     if(m_model)
     {
         setEnabled(true);
-        m_data_changed_connection = connect(m_model, &ApplicationState::dataChanged, this, &SubtitleDialogEditor::update_after_data_changed);
+        m_data_changed_connection = connect(m_model, &SubtitleManager::dataChanged, this, &SubtitleDialogEditor::update_after_data_changed);
     }
     else
     {
@@ -58,6 +58,9 @@ void SubtitleDialogEditor::update_after_current_changed(const QModelIndex &curre
 
 void SubtitleDialogEditor::update_subtitle_after_text_changed()
 {
-    m_model->update_subtitle_dialog(m_selection_model->currentIndex().row(),
-                                    toPlainText().toStdString());
+    if(m_selection_model->currentIndex().isValid())
+    {
+        m_model->update_subtitle_dialog(m_selection_model->currentIndex().row(),
+                                        toPlainText().toStdString());
+    }
 }

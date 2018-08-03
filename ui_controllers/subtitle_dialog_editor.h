@@ -9,7 +9,7 @@ class SubtitleDialogEditor: public QPlainTextEdit
 {
     Q_OBJECT
 
-    ApplicationState *m_model;
+    SubtitleManager *m_model;
     SubtitleSelectionModel *m_selection_model;
 
     QMetaObject::Connection m_data_changed_connection;
@@ -23,7 +23,7 @@ public:
         connect(this, &SubtitleDialogEditor::textChanged, this, &SubtitleDialogEditor::update_subtitle_after_text_changed);
     }
 
-    void setModel(ApplicationState *model);
+    void setModel(SubtitleManager *model);
     void setSelectionModel(SubtitleSelectionModel *model);
 
 private slots:

@@ -72,12 +72,13 @@ void SubtitleManager::remove_subtitle(size_t index)
     endRemoveRows();
 }
 
-void SubtitleManager::insert_subtitle(const TimeInterval &i, const std::string &text)
+Subtitle SubtitleManager::insert_subtitle(const TimeInterval &i, const std::string &text)
 {
     InsertPos pos = m_list.get_insert_pos(i);
     beginInsertRows(QModelIndex(), pos.index(), pos.index());
-    m_list.insert_dialog_at(pos, text);
+    Subtitle res = m_list.insert_dialog_at(pos, text);
     endInsertRows();
+    return res;
 }
 
 void SubtitleManager::load_subtitles(SubtitleList &&list)

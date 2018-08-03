@@ -1,5 +1,7 @@
 #include "waveform.h"
 
+#include <cassert>
+
 #include <QPainter>
 #include <QMenu>
 
@@ -227,16 +229,16 @@ void WaveformView::paint_subtitles()
 
 void WaveformView::paint_selection()
 {
-    if(m_selection_model->currentIndex().isValid())
+    if(m_selection_ctx)
     {
         QPainter painter(this);
 
         QRect selection_rect{m_drawing_context.get_waveform_rect(size())};
 
-        Subtitle selected_subtitle = m_model->subtitle(m_selection_model->currentIndex());
+        TimeInterval selection = m_selection_ctx->m_selection;
 
-        int left_pixel = scaled_x(selected_subtitle.start_time());
-        int right_pixel = scaled_x(selected_subtitle.end_time());
+        int left_pixel = scaled_x(selection.start_time());
+        int right_pixel = scaled_x(selection.end_time());
 
         selection_rect.setLeft(left_pixel);
         selection_rect.setRight(right_pixel);
@@ -269,9 +271,16 @@ void WaveformView::mousePressEvent(QMouseEvent *ev)
     if(!is_active()) return;
     if(ev->button() != Qt::LeftButton) return;
 
-    if(m_focus_ctx && m_focus_ctx->m_subtitle)
+    if(m_focus_ctx)
     {
-        m_selection_model->set_current_subtitle(*m_focus_ctx->m_subtitle);
+        if(m_focus_ctx->m_subtitle)
+        {
+            m_selection_model->set_current_subtitle(*m_focus_ctx->m_subtitle);
+        }
+        else
+        {
+            // Do nothing
+        }
     }
     else
     {
@@ -280,6 +289,8 @@ void WaveformView::mousePressEvent(QMouseEvent *ev)
         TimeInterval selection = {pos_ms, pos_ms};
         m_selection_ctx = {selection, pos_ms};
 
+        m_selection_model->clearCurrentIndex();
+
         redraw(UpdateCategory::Selection);
     }
 }
@@ -287,9 +298,11 @@ void WaveformView::mousePressEvent(QMouseEvent *ev)
 
 void WaveformView::resize_focused_object(QMouseEvent *ev)
 {
-    if(m_selection_ctx && m_focus_ctx)
+    int new_pos_ms = pixel_to_time_ms(ev->pos().x());
+    if(m_focus_ctx)
     {
-        int new_pos_ms = pixel_to_time_ms(ev->pos().x());
+        std::cout << "I haz focus" << std::endl;
+        assert((bool)m_selection_ctx);
         m_selection_ctx->m_selection.update_boundary(new_pos_ms, m_focus_ctx->m_position);
 
         // If the thing selected is a subtitle, update it
@@ -302,9 +315,22 @@ void WaveformView::resize_focused_object(QMouseEvent *ev)
             redraw(UpdateCategory::Selection);
         }
     }
+    else if(m_selection_ctx)
+    {
+        std::cout << "I haz selection" << std::endl;
+        if(new_pos_ms > m_selection_ctx->m_selection_origin)
+        {
+            m_selection_ctx->m_selection.set_end_time(new_pos_ms);
+        }
+        else
+        {
+            m_selection_ctx->m_selection.set_start_time(new_pos_ms);
+        }
+        redraw(UpdateCategory::Selection);
+    }
     else
     {
-        throw "Strange things happen";
+        assert(false && "Strange things happen, this should be unreachable");
     }
 }
 
@@ -312,8 +338,8 @@ void WaveformView::focus_object_near_cursor(QMouseEvent *ev)
 {
     int pos_ms = pixel_to_time_ms(ev->pos().x());
 
-    int focus_interval_width = m_drawing_context.duration_to_pixel_interval(2, size());
-    int tolerance_ms = m_drawing_context.duration_to_pixel_interval(4,size());
+    int focus_interval_width = std::max(1, m_drawing_context.duration_to_pixel_interval(2, size()));
+    int tolerance_ms = std::max(1, m_drawing_context.duration_to_pixel_interval(4,size()));
 
     // A list of nearby subtitles and the side focused
     std::vector<std::pair<Subtitle, IntervalBoundary>> nearby_subtitles;
@@ -346,6 +372,7 @@ void WaveformView::focus_object_near_cursor(QMouseEvent *ev)
 
     if(nearest_subtitle != nearby_subtitles.end())
     {
+        std::cout << "Found sub to focus" << std::endl;
         // We found the focused subtitle
         set_focus(nearest_subtitle->second, nearest_subtitle->first);
     }
@@ -356,21 +383,30 @@ void WaveformView::focus_object_near_cursor(QMouseEvent *ev)
         {
             const TimeInterval &interval = m_selection_ctx->m_selection;
 
+            std::cout << "Informations: " << std::endl;
+            std::cout << "Tolerance: " << tolerance_ms << std::endl;
+            std::cout << "Start eta: " << std::abs(interval.start_time() - pos_ms) << std::endl;
+            std::cout << "End eta: " << std::abs(interval.end_time() - pos_ms) << std::endl;
+
             if(std::abs(interval.start_time() - pos_ms) < tolerance_ms)
             {
+                std::cout << "Focus on selection dawg" << std::endl;
                 set_focus(IntervalBoundary::Start);
             }
             else if(std::abs(interval.end_time() - pos_ms) < tolerance_ms)
             {
+                std::cout << "Focus on selection dawg" << std::endl;
                 set_focus(IntervalBoundary::End);
             }
             else
             {
+                std::cout << "No way dawg" << std::endl;
                 remove_focus();
             }
         }
         else
         {
+            std::cout << "Uncle " << std::endl;
             remove_focus();
         }
     }
@@ -410,19 +446,22 @@ void WaveformView::contextMenuEvent(QContextMenuEvent *ev)
         menu.addAction(m_remove_subtitle_action);
         menu.exec(ev->globalPos());
     }
-    else if(m_selection)
+    if(m_selection_ctx)
     {
         menu.addAction(m_add_subtitle_action);
         menu.exec(ev->globalPos());
-    }*/
+    }
 }
 
 void WaveformView::create_subtitle_from_selection()
 {
+/*    Subtitle new_sub = m_model->insert_subtitle(m_selection_ctx->m_selection, "");
+    m_selection_ctx->set_current_subtitle(new_sub);*/
 }
 
 void WaveformView::remove_selected_subtitle()
 {
+    m_model->remove_subtitle(m_selection_model->currentIndex());
 }
 
 void WaveformView::update_after_data_changed(const QModelIndex &topLeft,
