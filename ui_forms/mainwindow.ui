@@ -33,14 +33,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QTableView" name="subtitleList">
-      <property name="selectionMode">
-       <enum>QAbstractItemView::ExtendedSelection</enum>
-      </property>
-      <property name="selectionBehavior">
-       <enum>QAbstractItemView::SelectRows</enum>
-      </property>
-     </widget>
+     <widget class="SubtitleListView" name="subtitleList"/>
     </item>
    </layout>
   </widget>
@@ -103,6 +96,11 @@
    <extends>QWidget</extends>
    <header>ui_controllers/waveform.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SubtitleListView</class>
+   <extends>QTableView</extends>
+   <header>ui_controllers/subtitle_list_view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
