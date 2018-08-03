@@ -5,13 +5,13 @@ qt5_deps = dependency('qt5', modules: ['Gui', 'Core', 'Widgets'])
 
 
 # Qt5 preprocessing
-moc_headers = ['ui_controllers/main_window.h', 'ui_controllers/subtitle_dialog_editor.h', 'application_state.h', 'ui_controllers/waveform.h']
+moc_headers = ['ui_controllers/main_window.h', 'ui_controllers/subtitle_dialog_editor.h', 'application_state.h', 'ui_controllers/waveform.h', 'ui_controllers/subtitle_list_view.h']
 ui_files = ['ui_forms/mainwindow.ui']
 moc_files = qt5.preprocess(moc_headers: moc_headers, ui_files: ui_files)
 
 
 # Snake cpp files
-snake_cpp_files = ['main.cpp', 'subtitle_list/subtitle_list.cpp', 'subtitle_formats/srt_parser.cpp', 'ui_controllers/main_window.cpp', 'ui_controllers/subtitle_dialog_editor.cpp', 'application_state.cpp', 'ui_controllers/waveform.cpp', 'subtitle_list/time_interval.cpp', 'utils/time_utils.cpp']
+snake_cpp_files = ['main.cpp', 'subtitle_list/subtitle_list.cpp', 'subtitle_formats/srt_parser.cpp', 'ui_controllers/main_window.cpp', 'ui_controllers/subtitle_dialog_editor.cpp', 'application_state.cpp', 'ui_controllers/waveform.cpp', 'subtitle_list/time_interval.cpp', 'utils/time_utils.cpp', 'ui_controllers/subtitle_list_view.cpp']
 
 
 dependencies = [qt5_deps]
