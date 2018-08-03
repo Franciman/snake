@@ -52,6 +52,7 @@ void SubtitleDialogEditor::update_after_current_changed(const QModelIndex &curre
     else
     {
         setEnabled(false);
+        setPlainText("");
     }
 }
 

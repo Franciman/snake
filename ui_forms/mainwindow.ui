@@ -93,13 +93,16 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>SubtitleDialogEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>ui_controllers/subtitle_dialog_editor.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>WaveformView</class>
    <extends>QWidget</extends>
    <header>ui_controllers/waveform.h</header>
    <container>1</container>
-   <class>SubtitleDialogEditor</class>
-   <extends>QPlainTextEdit</extends>
-   <header>ui_controllers/subtitle_dialog_editor.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

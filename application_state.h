@@ -6,22 +6,24 @@
 #include <QAbstractTableModel>
 #include <QItemSelectionModel>
 
-class ApplicationState;
+class SubtitleManager;
 
 class SubtitleSelectionModel: public QItemSelectionModel
 {
     Q_OBJECT
 public:
-    SubtitleSelectionModel(ApplicationState *model);
+    SubtitleSelectionModel(SubtitleManager *model);
+
+    void set_current_subtitle(Subtitle s);
 };
 
-class ApplicationState: public QAbstractTableModel
+class SubtitleManager: public QAbstractTableModel
 {
     Q_OBJECT
 
     SubtitleList m_list;
 public:
-    ApplicationState(QObject *parent = nullptr):
+    SubtitleManager(QObject *parent = nullptr):
         QAbstractTableModel(parent)
     { }
 
@@ -49,6 +51,8 @@ public:
     void update_subtitle_dialog(size_t index, const std::string &text);
     void update_subtitle_dialog(size_t index, std::string &&text);
 
+    void update_subtitle_timing(Subtitle s, const TimeInterval &new_interval);
+
     Subtitle subtitle(size_t index) const
     {
         return m_list[index];
@@ -61,6 +65,11 @@ public:
 
     // Reload all subtitles
     void load_subtitles(SubtitleList &&list);
+
+    const SubtitleList &subtitles() const
+    {
+        return m_list;
+    }
 };
 
 #endif // application_state_h_INCLUDED

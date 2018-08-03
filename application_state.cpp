@@ -1,10 +1,22 @@
 #include "application_state.h"
 
-SubtitleSelectionModel::SubtitleSelectionModel(ApplicationState *model):
+#include <utils/time_utils.h>
+
+SubtitleSelectionModel::SubtitleSelectionModel(SubtitleManager *model):
     QItemSelectionModel(model)
 { }
 
-QVariant ApplicationState::data(const QModelIndex &index, int role) const
+void SubtitleSelectionModel::set_current_subtitle(Subtitle s)
+{
+    SubtitleManager *manager = static_cast<SubtitleManager *>(model());
+    if(manager)
+    {
+        size_t index = manager->subtitles().index(s);
+        setCurrentIndex(manager->index(index, 2), QItemSelectionModel::Current);
+    }
+}
+
+QVariant SubtitleManager::data(const QModelIndex &index, int role) const
 {
     int row = index.row();
     int column = index.column();
@@ -15,9 +27,9 @@ QVariant ApplicationState::data(const QModelIndex &index, int role) const
         switch(column)
         {
             case 0:
-                return sub.start_time();
+                return time_ms_to_string(sub.start_time()).c_str();
             case 1:
-                return sub.end_time();
+                return time_ms_to_string(sub.end_time()).c_str();
             case 2:
                 return sub.dialog().c_str();
             default:
@@ -27,7 +39,7 @@ QVariant ApplicationState::data(const QModelIndex &index, int role) const
     return {};
 }
 
-QVariant ApplicationState::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant SubtitleManager::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(role != Qt::DisplayRole) return {};
 
@@ -53,14 +65,14 @@ QVariant ApplicationState::headerData(int section, Qt::Orientation orientation, 
     return {};
 }
 
-void ApplicationState::remove_subtitle(size_t index)
+void SubtitleManager::remove_subtitle(size_t index)
 {
     beginRemoveRows(QModelIndex(), index, index);
     m_list.delete_subtitle(index);
     endRemoveRows();
 }
 
-void ApplicationState::insert_subtitle(const TimeInterval &i, const std::string &text)
+void SubtitleManager::insert_subtitle(const TimeInterval &i, const std::string &text)
 {
     InsertPos pos = m_list.get_insert_pos(i);
     beginInsertRows(QModelIndex(), pos.index(), pos.index());
@@ -68,14 +80,14 @@ void ApplicationState::insert_subtitle(const TimeInterval &i, const std::string 
     endInsertRows();
 }
 
-void ApplicationState::load_subtitles(SubtitleList &&list)
+void SubtitleManager::load_subtitles(SubtitleList &&list)
 {
     beginResetModel();
     m_list = std::move(list);
     endResetModel();
 }
 
-void ApplicationState::update_subtitle_dialog(size_t index, const std::string &dialog)
+void SubtitleManager::update_subtitle_dialog(size_t index, const std::string &dialog)
 {
     if(m_list[index].dialog() != dialog)
     {
@@ -84,11 +96,21 @@ void ApplicationState::update_subtitle_dialog(size_t index, const std::string &d
     }
 }
 
-void ApplicationState::update_subtitle_dialog(size_t index, std::string &&dialog)
+void SubtitleManager::update_subtitle_dialog(size_t index, std::string &&dialog)
 {
     if(m_list[index].dialog() != dialog)
     {
         m_list.update_dialog(m_list[index], std::move(dialog));
+        emit dataChanged(createIndex(index, 0), createIndex(index, 2));
+    }
+}
+
+void SubtitleManager::update_subtitle_timing(Subtitle s, const TimeInterval &new_interval)
+{
+    if(new_interval != s.time_interval())
+    {
+        size_t index = m_list.index(s);
+        m_list.update_timing(s, new_interval);
         emit dataChanged(createIndex(index, 0), createIndex(index, 2));
     }
 }

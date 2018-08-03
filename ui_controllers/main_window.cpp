@@ -18,6 +18,9 @@ MainWindow::MainWindow(QWidget *parent):
     ui->subtitleDialogEdit->setModel(&m_model);
     ui->subtitleDialogEdit->setSelectionModel(&m_selection_model);
 
+    ui->waveform->setModel(&m_model);
+    ui->waveform->setSelectionModel(&m_selection_model);
+
 /*    connect(ui->subtitleList, &QTableView::doubleClicked, this, [this](const QModelIndex &index)
     {
         ui->subtitleList->selectRow(index.row());

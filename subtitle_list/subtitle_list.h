@@ -167,6 +167,11 @@ private:
 
     void update_max_end_points()
     {
+        // Reset max end times
+        for(auto &sub : m_subtitles)
+        {
+            sub.set_max_end_time(sub.end_time());
+        }
         update_max_end_points_impl(m_subtitles.begin(), m_subtitles.end());
     }
 
