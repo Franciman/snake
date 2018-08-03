@@ -25,18 +25,6 @@ MainWindow::MainWindow(QWidget *parent):
     ui->waveform->setModel(&m_model);
     ui->waveform->setSelectionModel(&m_selection_model);
 
-/*    connect(ui->subtitleList, &QTableView::doubleClicked, this, [this](const QModelIndex &index)
-    {
-        ui->subtitleList->selectRow(index.row());
-    });
-
-    ui->waveform->set_application_state(m_state);
-
-    connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::select_subtitle);
-    connect(&m_state, &ApplicationState::selection_changed, this, &MainWindow::update_selection);
-
-    connect(ui->subtitleDialogEdit, &QPlainTextEdit::textChanged, this, &MainWindow::update_subtitle_text);*/
-
     connect(ui->actionOpen_subtitles, &QAction::triggered, this, &MainWindow::open_subtitles);
 
     connect(ui->actionRemove_selected_subtitle, &QAction::triggered, this, [this]()
