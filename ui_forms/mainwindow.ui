@@ -14,9 +14,60 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="2,0,1,5">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="2,1,0,1,5">
     <item>
-     <widget class="WaveformView" name="waveform" native="true"/>
+     <widget class="QFrame" name="multimedialPanel">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="WaveformView" name="waveform" native="true"/>
+       </item>
+       <item>
+        <widget class="VideoPlayer" name="videoPlayer"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="playbackControlsPanel">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QPushButton" name="play">
+         <property name="text">
+          <string>Play</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pause">
+         <property name="text">
+          <string>Pause</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="timer">
+         <property name="text">
+          <string>0:00:00,000</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
      <widget class="QLabel" name="label">
@@ -53,6 +104,8 @@
     <addaction name="actionNew_subtitles"/>
     <addaction name="actionOpen_subtitles"/>
     <addaction name="actionRemove_selected_subtitle"/>
+    <addaction name="actionDetach_video"/>
+    <addaction name="actionOpen_video"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -68,11 +121,6 @@
     <string>Open subtitles</string>
    </property>
   </action>
-  <action name="actionAdd_subtitle">
-   <property name="text">
-    <string>Add subtitle</string>
-   </property>
-  </action>
   <action name="actionRemove_selected_subtitle">
    <property name="text">
     <string>Remove selected subtitle</string>
@@ -81,6 +129,19 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionDetach_video">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Detach video</string>
+   </property>
+  </action>
+  <action name="actionOpen_video">
+   <property name="text">
+    <string>Open video</string>
    </property>
   </action>
  </widget>
@@ -101,6 +162,11 @@
    <class>SubtitleListView</class>
    <extends>QTableView</extends>
    <header>ui_controllers/subtitle_list_view.h</header>
+  </customwidget>
+  <customwidget>
+   <class>VideoPlayer</class>
+   <extends>QOpenGLWidget</extends>
+   <header>ui_controllers/video_player.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

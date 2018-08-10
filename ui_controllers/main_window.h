@@ -11,6 +11,8 @@ namespace Ui
     class MainWindow;
 }
 
+class MediaRenderer;
+
 class MainWindow: public QMainWindow
 {
     Q_OBJECT
@@ -24,10 +26,17 @@ public:
 private slots:
     void open_subtitles();
 
+    void open_video();
+    void toggle_detach_video();
+
+    void play();
+    void pause();
+
 private:
     Ui::MainWindow *ui;
     SubtitleManager m_model;
     SubtitleSelectionModel m_selection_model;
+    MediaRenderer *m_renderer;
 };
 
 #endif // main_window_h_INCLUDED

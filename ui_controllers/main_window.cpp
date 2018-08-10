@@ -4,14 +4,18 @@
 #include <QFileDialog>
 #include <QTableView>
 #include <subtitle_formats/srt_parser.h>
+#include <media_renderer.h>
 
 #include <iostream>
+
+#include <utils/time_utils.h>
 
 MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_model(),
-    m_selection_model(&m_model)
+    m_selection_model(&m_model),
+    m_renderer(new MediaRenderer(this))
 {
     ui->setupUi(this);
 
@@ -25,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent):
     ui->waveform->setModel(&m_model);
     ui->waveform->setSelectionModel(&m_selection_model);
 
+    ui->videoPlayer->set_media_renderer(*m_renderer);
+
     connect(ui->actionOpen_subtitles, &QAction::triggered, this, &MainWindow::open_subtitles);
 
     connect(ui->actionRemove_selected_subtitle, &QAction::triggered, this, [this]()
@@ -35,6 +41,19 @@ MainWindow::MainWindow(QWidget *parent):
         }
     });
 
+    connect(m_renderer, &MediaRenderer::time_pos_changed, this, [&](double time_pos)
+    {
+        std::cout << "Yo" << std::endl;
+        int milliseconds = time_pos * 1000.0;
+        ui->timer->setText(time_ms_to_string(milliseconds).c_str());
+    });
+
+    connect(ui->play, &QPushButton::clicked, this, &MainWindow::play);
+    connect(ui->pause, &QPushButton::clicked, this, &MainWindow::pause);
+
+    connect(ui->actionOpen_video, &QAction::triggered, this, &MainWindow::open_video);
+    connect(ui->actionDetach_video, &QAction::triggered, this, &MainWindow::toggle_detach_video);
+
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::close);
 
     test_open_subtitles();
@@ -42,7 +61,10 @@ MainWindow::MainWindow(QWidget *parent):
 
 MainWindow::~MainWindow()
 {
+    // TODO: make further tests, maybe this is unnecessary
+    ui->videoPlayer->terminate();
     delete ui;
+    std::cout << "Finished here" << std::endl;
 }
 
 void MainWindow::open_subtitles()
@@ -69,4 +91,32 @@ void MainWindow::test_open_subtitles()
     }
 
     m_model.load_subtitles(std::move(list));
+}
+
+void MainWindow::open_video()
+{
+    std::string filename{QFileDialog::getOpenFileName(this).toStdString()};
+    m_renderer->load_media_file(filename.c_str());
+}
+
+void MainWindow::toggle_detach_video()
+{
+    if(ui->actionDetach_video->isChecked())
+    {
+        ui->videoPlayer->detach();
+    }
+    else
+    {
+        ui->videoPlayer->reattach(ui->multimedialPanel->layout());
+    }
+}
+
+void MainWindow::play()
+{
+    m_renderer->play();
+}
+
+void MainWindow::pause()
+{
+    m_renderer->pause();
 }
