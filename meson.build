@@ -3,12 +3,11 @@ project('snake', 'cpp')
 qt5 = import('qt5')
 qt5_deps = dependency('qt5', modules: ['Gui', 'Core', 'Widgets'])
 
-# mpv_dep = dependency('mpv')
+mpv_dep = dependency('mpv')
 
+# mpv_inc = include_directories('/home/francesco/Projects/mpv/')
 
-mpv_inc = include_directories('/home/francesco/Projects/mpv/')
-
-mpv_dep = meson.get_compiler('cpp').find_library('libmpv', dirs: '/home/francesco/Projects/mpv/build/')
+# mpv_dep = meson.get_compiler('cpp').find_library('libmpv', dirs: '/home/francesco/Projects/mpv/build/')
 
 # Qt5 preprocessing
 moc_headers = [ 'ui_controllers/main_window.h'
@@ -43,4 +42,4 @@ snake_cpp_files = [ 'main.cpp'
 
 
 dependencies = [qt5_deps, mpv_dep]
-executable('snake', snake_cpp_files, moc_files, include_directories: mpv_inc, dependencies: dependencies, cpp_args: ['-std=c++17', '-g'])
+executable('snake', snake_cpp_files, moc_files, dependencies: dependencies, cpp_args: ['-std=c++17', '-g'])
