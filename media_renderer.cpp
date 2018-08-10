@@ -30,6 +30,7 @@ MediaRenderer::MediaRenderer(QObject *parent):
 
     mpv_set_option_string(m_mpv_client, "terminal", "yes");
     mpv_set_option_string(m_mpv_client, "msg-level", "all=v");
+    mpv_set_option_string(m_mpv_client, "stop-playback-on-init-failure", "no");
     mpv_set_option_string(m_mpv_client, "vo", "opengl-cb");
 
     mpv_observe_property(m_mpv_client, 0, "time-pos", MPV_FORMAT_DOUBLE);
